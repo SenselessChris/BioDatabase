@@ -1,0 +1,156 @@
+
+-- 1.Speicherung von Rezepten bestehend aus mehreren Zutaten
+INSERT INTO rezept (RezeptNr, Rezeptname, Preis)
+VALUES (DEFAULT, 'rezept7', 10.20 );
+INSERT INTO rezeptzutat VALUES (7, 1, 3);
+INSERT INTO rezeptzutat values(7, 2, 100);
+INSERT INTO rezeptzutat values (7, 3, 10);
+
+-- 2.Speicherung von Ernährungskategorien
+INSERT INTO kategorie VALUES (DEFAULT, 'kategorie4');
+
+-- 3.Speicherung von Beschränkungen/ Allergenen
+INSERT INTO beschraenkung (beschraenkungsnr, beschraenkungsbezeichnung)
+VALUES(default, 'kategorie5');
+
+-- 4.Zusammenstellung von Zutaten entsprechend eines Rezepts
+SELECT z.ZutatsNr AS Zutazennumer, z.Bezeichnung AS Zutatenname
+FROM zutat z
+INNER JOIN rezeptzutat rz on z.ZutatsNr = rz.ZutatsNr
+INNER JOIN rezept r on rz.RezeptNr = r.RezeptNr
+WHERE r.Rezeptname = 'rezept1';
+
+-- 5.Auswahl von Rezepten entsprechend vorgegebener Ernährungskategorien
+SELECT rezept.RezeptNr, rezept.Rezeptname
+FROM rezept
+INNER JOIN rezeptkategorie on rezept.RezeptNr = rezeptkategorie.rezeptNr
+INNER JOIN kategorie on rezeptkategorie.kategorieNr = kategorie.KategorieNr
+WHERE kategorie.Kategoriebezeichnung = 'kategorie1';
+
+-- 6.Auswahl bzw. Ausschluss von Rezepten auf Basis von Beschränkungen
+-- Im Fall Ausschluss
+SELECT r.rezeptNr, r.Rezeptname
+FROM rezept r
+INNER JOIN rezeptbeschraenkung rb on r.RezeptNr = rb.rezeptNr
+INNER JOIN beschraenkung b on rb.beschraenkungNr = b.BeschraenkungsNr
+WHERE NOT Beschraenkungsbezeichnung = 'beschraenkung1';
+
+-- Im Fall Auswahl
+SELECT r.rezeptNr, r.Rezeptname
+FROM rezept r
+INNER JOIN rezeptbeschraenkung rb on r.RezeptNr = rb.rezeptNr
+INNER JOIN beschraenkung b on rb.beschraenkungNr = b.BeschraenkungsNr
+WHERE Beschraenkungsbezeichnung = 'beschraenkung1';
+
+-- 7. optional: Zugriffskontrolle personenbezogener Daten
+
+/*
+8. Die Kraut und Rüben bittet Sie darüber hinaus ein Konzept zu entwickeln für die Fälle,
+ dass ein Kunde Auskunft seiner Daten nach DSGVO beantragt oder
+ die Löschung seiner Daten verlangt.
+ Klären Sie für beide Fälle sowohl die rechtlichen Grundlagen und implementieren Sie die technische Umsetzung (Beispielsweise als SQL-Skript).
+*/
+
+
+-- 9.Auswahl aller Zutaten eines Rezeptes nach Rezeptname
+SELECT z.ZutatsNr, z.BEZEICHNUNG
+FROM zutat z
+INNER JOIN rezeptzutat rz on z.ZutatsNr = rz.ZutatsNr
+INNER JOIN rezept r on rz.RezeptNr = r.RezeptNr
+WHERE r.Rezeptname = 'rezept1';
+
+-- 10.Auswahl aller Rezepte einer bestimmten Ernährungskategorie
+SELECT r.rezeptNr, r.Rezeptname
+FROM rezept r
+INNER JOIN rezeptkategorie rk on r.RezeptNr = rk.rezeptNr
+INNER JOIN kategorie k on rk.kategorieNr = k.KategorieNr
+WHERE k.KategorieNr = 1;
+
+-- 11.Auswahl aller Rezepte, die eine gewisse Zutat enthalten
+SELECT r.RezeptNr, r.Rezeptname
+FROM rezept r
+INNER JOIN rezeptzutat rz on r.RezeptNr = rz.RezeptNr
+INNER JOIN zutat z on rz.ZutatsNr = z.ZutatsNr
+WHERE z.Bezeichnung = 'zutat1';
+
+-- 12.Berechnung der durchschnittlichen Nährwerte aller Bestellungen eines Kunden
+SELECT b.BestellNr,
+ROUND(AVG(IFNULL(Kalorien, 0) ), 2) AS Kalorien,
+ROUND(AVG(IFNULL(Kohlenhydrate, 0)), 2) AS Kohlenhydrate,
+ROUND(AVG(IFNULL(Protein, 0)), 2) AS Protein,
+ROUND(AVG(IFNULL(VitaminB6, 0)), 2) AS VitaminB6,
+ROUND(AVG(IFNULL(VitaminB12, 0)), 2) AS VitaminB12,
+ROUND(AVG(IFNULL(Niacin, 0)), 2) AS Niacin
+FROM zutat z
+INNER JOIN rezeptzutat rz on z.ZutatsNr = rz.ZutatsNr
+INNER JOIN rezept r on rz.RezeptNr = r.RezeptNr
+INNER JOIN bestellungrezept br on r.RezeptNr = br.RezeptNr
+INNER JOIN bestellung b on br.BestellNr = b.BestellNr
+INNER JOIN kunde k on b.KundenNr = k.KundenNr
+WHERE k.Nachname = 'kundenach1';
+
+-- Test 12.(einzelne Zutaten aller Rezepte aller Bestellungen eines Kunden)
+SELECT b.BestellNr, r.Rezeptname ,Kalorien, Kohlenhydrate, Protein, VitaminB6, VitaminB12, Niacin
+FROM zutat z
+INNER JOIN rezeptzutat rz on z.ZutatsNr = rz.ZutatsNr
+INNER JOIN rezept r on rz.RezeptNr = r.RezeptNr
+INNER JOIN bestellungrezept br on r.RezeptNr = br.RezeptNr
+INNER JOIN bestellung b on br.BestellNr = b.BestellNr
+INNER JOIN kunde k on b.KundenNr = k.KundenNr
+WHERE k.KundenNr = 1;
+
+-- Test 12.(Summe einzelner Nährstoffe aller Rezepte aller Be3stellung eines Kunden)
+SELECT b.BestellNr, SUM(Kalorien), SUM(Kohlenhydrate), SUM(Protein), SUM(VitaminB6), SUM(VitaminB12), SUM(Niacin)
+FROM zutat z
+INNER JOIN rezeptzutat rz on z.ZutatsNr = rz.ZutatsNr
+INNER JOIN rezept r on rz.RezeptNr = r.RezeptNr
+INNER JOIN bestellungrezept br on r.RezeptNr = br.RezeptNr
+INNER JOIN bestellung b on br.BestellNr = b.BestellNr
+INNER JOIN kunde k on b.KundenNr = k.KundenNr
+WHERE k.KundenNr = 2
+GROUP BY b.BestellNr AND r.Rezeptname;
+
+
+-- 13.Auswahl aller Zutaten, die bisher keinem Rezept zugeordnet sind
+SELECT z.ZutatsNr, z.Bezeichnung, rz.RezeptNr
+FROM zutat z
+LEFT JOIN rezeptzutat rz on z.ZutatsNr = rz.ZutatsNr
+WHERE RezeptNr IS NULL;
+
+-- 14.Auswahl aller Rezepte, die eine bestimmte Kalorienmenge nicht überschreiten
+SELECT r.RezeptNr, r.Rezeptname, SUM(z.Kalorien * rz.ZutatMenge)
+FROM zutat z
+INNER JOIN rezeptzutat rz on z.ZutatsNr = rz.ZutatsNr
+INNER JOIN rezept r on rz.RezeptNr = r.RezeptNr
+GROUP BY r.RezeptNr
+HAVING SUM(z.Kalorien * rz.ZutatMenge) < ???
+;
+
+-- 15.Auswahl aller Rezepte, die weniger als fünf Zutaten enthalten
+SELECT r.RezeptNr, r.Rezeptname
+FROM rezept r
+INNER JOIN rezeptzutat rz on r.RezeptNr = rz.RezeptNr
+GROUP BY r.RezeptNr, r.Rezeptname
+HAVING COUNT(DISTINCT rz.ZutatsNr) >=3
+;
+
+-- 16.Auswahl aller Rezepte, die weniger als fünf Zutaten enthalten und eine bestimmte Ernährungskategorie erfüllen
+SELECT r.RezeptNr, r.Rezeptname
+FROM rezept r
+INNER JOIN rezeptzutat rz on r.RezeptNr = rz.RezeptNr
+INNER JOIN rezeptkategorie rk on r.RezeptNr = rk.rezeptNr
+INNER JOIN kategorie k on rk.kategorieNr = k.KategorieNr
+WHERE k.KategorieNr = 1
+GROUP BY r.RezeptNr, r.Rezeptname
+HAVING COUNT(DISTINCT rz.ZutatsNr) > 2
+;
+
+---------------------------------
+/*ALTER TABLE rezept DROP KEY rezept_ibfk_1;
+
+ALTER TABLE rezeptkategorie ADD CONSTRAINT rezeptkategorie_ibfk_1
+    FOREIGN KEY (rezeptNr) references rezept(RezeptNr) ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE rezeptkategorie ADD CONSTRAINT rezeptkategorie_ibfk_2
+    FOREIGN KEY (kategorieNr) references kategorie(kategorieNr) ON DELETE CASCADE ON UPDATE CASCADE;
+*/
