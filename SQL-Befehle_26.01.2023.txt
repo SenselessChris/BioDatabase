@@ -1,0 +1,239 @@
+-- stand 25.01.2023
+-- Alle Rezepte, die eine bestimmte Beschraenkung nicht enthalten (das gleiche Ergebnis mit der 6.Anforderung)
+SELECT DISTINCT r.rezeptNr, r.Rezeptname, b.Beschraenkungsbezeichnung
+FROM rezept r
+         INNER JOIN rezeptzutat rz on r.RezeptNr = rz.RezeptNr
+         INNER JOIN zutat z on rz.ZutatsNr = z.ZutatsNr
+         LEFT JOIN beschraenkung b on z.ZutatsNr = b.ZutatsNr
+WHERE r.RezeptNr NOT IN (SELECT r.rezeptNr
+                         FROM rezept r
+                                  INNER JOIN rezeptzutat rz on r.RezeptNr = rz.RezeptNr
+                                  INNER JOIN zutat z on rz.ZutatsNr = z.ZutatsNr
+                                  LEFT JOIN beschraenkung b on z.ZutatsNr = b.ZutatsNr
+                         WHERE Beschraenkungsbezeichnung = 'beschraenkung1'
+                         GROUP BY r.RezeptNr);
+
+
+-- Alle Rezepte, die eine bestimme Zutat nicht enthalten.
+SELECT r.RezeptNr, r.Rezeptname, rz.ZutatsNr
+FROM rezept r
+         LEFT JOIN rezeptzutat rz on r.RezeptNr = rz.RezeptNr and rz.ZutatsNr = 1
+WHERE rz.ZutatsNr IS NULL
+GROUP BY r.RezeptNr
+;
+
+
+
+SELECT z.ZutatsNr, b.Beschraenkungsbezeichnung
+FROM zutat z
+LEFT JOIN beschraenkung b on z.ZutatsNr = b.ZutatsNr AND b.Beschraenkungsbezeichnung = 'beschraenkung1'
+WHERE b.Beschraenkungsbezeichnung IS NULL
+GROUP BY z.ZutatsNr;
+
+
+
+-- 1.Speicherung von Rezepten bestehend aus mehreren Zutaten
+INSERT INTO rezept (RezeptNr, Rezeptname)
+VALUES (DEFAULT, 'rezept8');
+INSERT INTO rezeptzutat VALUES (8, 1, 50, 1.1);
+INSERT INTO rezeptzutat values(8, 2, 120, 2.9);
+INSERT INTO rezeptzutat values (8, 3, 80, 3.1);
+
+-- 2.Speicherung von Ernährungskategorien
+INSERT INTO ernaehrungskategorie VALUES ('kategorie10', 2);
+
+-- 3.Speicherung von Beschränkungen/ Allergenen
+INSERT INTO beschraenkung VALUES ('beschraenkung10', 3);
+
+
+-- 4.Zusammenstellung von Zutaten entsprechend eines Rezepts
+SELECT z.ZutatsNr, z.Bezeichnung
+FROM zutat z
+         INNER JOIN rezeptzutat rz on z.ZutatsNr = rz.ZutatsNr
+         INNER JOIN rezept r on rz.RezeptNr = r.RezeptNr
+WHERE r.Rezeptname = 'rezept1';
+
+-- 5.Auswahl von Rezepten entsprechend vorgegebener Ernährungskategorien
+SELECT DISTINCT r.RezeptNr, r.Rezeptname
+FROM rezept r
+         INNER JOIN rezeptzutat rz on r.RezeptNr = rz.RezeptNr
+         INNER JOIN zutat z on rz.ZutatsNr = z.ZutatsNr
+         INNER JOIN ernaehrungskategorie ek on z.ZutatsNr = ek.ZutatsNr
+WHERE ek.Kategoriebezeichnung = 'kategorie1'
+ORDER BY r.RezeptNr
+;
+
+-- 6.Auswahl bzw. Ausschluss von Rezepten auf Basis von Beschränkungen
+-- Im Fall Auswahl
+SELECT r.rezeptNr, r.Rezeptname
+FROM rezept r
+         INNER JOIN rezeptzutat rz on r.RezeptNr = rz.RezeptNr
+         INNER JOIN zutat z on rz.ZutatsNr = z.ZutatsNr
+         LEFT JOIN beschraenkung b on z.ZutatsNr = b.ZutatsNr
+WHERE Beschraenkungsbezeichnung = 'beschraenkung1'
+GROUP BY r.RezeptNr;
+
+
+-- Im Fall Ausschluss
+SELECT DISTINCT r.rezeptNr, r.Rezeptname, b.Beschraenkungsbezeichnung
+FROM rezept r
+         INNER JOIN rezeptzutat rz on r.RezeptNr = rz.RezeptNr
+         INNER JOIN zutat z on rz.ZutatsNr = z.ZutatsNr
+         LEFT JOIN beschraenkung b on z.ZutatsNr = b.ZutatsNr
+WHERE r.RezeptNr NOT IN (SELECT r.rezeptNr
+                         FROM rezept r
+                                  INNER JOIN rezeptzutat rz on r.RezeptNr = rz.RezeptNr
+                                  INNER JOIN zutat z on rz.ZutatsNr = z.ZutatsNr
+                                  LEFT JOIN beschraenkung b on z.ZutatsNr = b.ZutatsNr
+                         WHERE Beschraenkungsbezeichnung = 'beschraenkung1'
+                         GROUP BY r.RezeptNr);
+
+
+-- 7. optional: Zugriffskontrolle personenbezogener Daten
+
+/*
+8. Die Kraut und Rüben bittet Sie darüber hinaus ein Konzept zu entwickeln für die Fälle,
+ dass ein Kunde Auskunft seiner Daten nach DSGVO beantragt oder
+ die Löschung seiner Daten verlangt.
+ Klären Sie für beide Fälle sowohl die rechtlichen Grundlagen und implementieren Sie die technische Umsetzung (Beispielsweise als SQL-Skript).
+*/
+
+-- personenbezogene Daten ansehen
+SELECT k.KundenNr, k.Vorname, k.Nachname, k.Geburtsdatum, k.TELEFON, k.Email, Strasse, HausNr, Ort, Plz
+FROM kunde k
+         INNER JOIN adresse a on k.AdressID = a.AdressID
+         INNER JOIN ort o on a.OrtID = o.OrtID
+WHERE k.KundenNr = ???;
+
+SELECT BestellNr, BestellDatum
+FROM bestellung
+WHERE KundenNr = ???;
+
+-- personenbezogene Daten löschen
+DELETE FROM kunde WHERE KundenNr = ???;
+
+-- 9.Auswahl aller Zutaten eines Rezeptes nach Rezeptname
+SELECT z.ZutatsNr, z.BEZEICHNUNG
+FROM zutat z
+         INNER JOIN rezeptzutat rz on z.ZutatsNr = rz.ZutatsNr
+         INNER JOIN rezept r on rz.RezeptNr = r.RezeptNr
+WHERE r.Rezeptname = 'rezept1';
+
+-- 10.Auswahl aller Rezepte einer bestimmten Ernährungskategorie
+SELECT DISTINCT r.rezeptNr, r.Rezeptname
+FROM rezept r
+         INNER JOIN rezeptzutat r2 on r.RezeptNr = r2.RezeptNr
+         INNER JOIN zutat z on r2.ZutatsNr = z.ZutatsNr
+         INNER JOIN ernaehrungskategorie ek on z.ZutatsNr = ek.ZutatsNr
+WHERE ek.Kategoriebezeichnung = 'kategorie1'
+ORDER BY r.RezeptNr;
+
+-- 11.Auswahl aller Rezepte, die eine gewisse Zutat enthalten
+SELECT r.RezeptNr, r.Rezeptname
+FROM rezept r
+         INNER JOIN rezeptzutat rz on r.RezeptNr = rz.RezeptNr
+         INNER JOIN zutat z on rz.ZutatsNr = z.ZutatsNr
+WHERE z.Bezeichnung = 'zutat3';
+
+-- 12.Berechnung der durchschnittlichen Nährwerte aller Bestellungen eines Kunden
+SELECT b.BestellNr,
+       ROUND(AVG(IFNULL(Kalorien, 0) ), 2) AS Kalorien,
+       ROUND(AVG(IFNULL(Protein, 0)), 2) AS Protein,
+       ROUND(AVG(IFNULL(Kohlenhydrate, 0)), 2) AS Kohlenhydrate,
+       ROUND(AVG(IFNULL(Fett, 0)), 2) AS Fett,
+       ROUND(AVG(IFNULL(Vitamin_B6, 0)), 2) AS VitaminB6,
+       ROUND(AVG(IFNULL(Vitamin_B12, 0)), 2) AS VitaminB12,
+       ROUND(AVG(IFNULL(Niacin, 0)), 2) AS Niacin
+FROM zutat z
+         INNER JOIN rezeptzutat rz on z.ZutatsNr = rz.ZutatsNr
+         INNER JOIN rezept r on rz.RezeptNr = r.RezeptNr
+         INNER JOIN bestellungrezept br on r.RezeptNr = br.RezeptNr
+         INNER JOIN bestellung b on br.BestellNr = b.BestellNr
+         INNER JOIN kunde k on b.KundenNr = k.KundenNr
+WHERE k.Nachname = 'Kira';
+
+-- Test 12.(einzelne Zutaten aller Rezepte aller Bestellungen eines Kunden)
+SELECT b.BestellNr, r.Rezeptname ,Kalorien, Kohlenhydrate, Protein, Vitamin_B6, Vitamin_B12, Niacin
+FROM zutat z
+         INNER JOIN rezeptzutat rz on z.ZutatsNr = rz.ZutatsNr
+         INNER JOIN rezept r on rz.RezeptNr = r.RezeptNr
+         INNER JOIN bestellungrezept br on r.RezeptNr = br.RezeptNr
+         INNER JOIN bestellung b on br.BestellNr = b.BestellNr
+         INNER JOIN kunde k on b.KundenNr = k.KundenNr
+WHERE k.KundenNr = 1;
+
+-- Test 12.(Summe einzelner Nährstoffe aller Rezepte aller Be3stellung eines Kunden)
+SELECT b.BestellNr, SUM(Kalorien), SUM(Kohlenhydrate), SUM(Protein), SUM(Vitamin_B6), SUM(Vitamin_B12), SUM(Niacin)
+FROM zutat z
+         INNER JOIN rezeptzutat rz on z.ZutatsNr = rz.ZutatsNr
+         INNER JOIN rezept r on rz.RezeptNr = r.RezeptNr
+         INNER JOIN bestellungrezept br on r.RezeptNr = br.RezeptNr
+         INNER JOIN bestellung b on br.BestellNr = b.BestellNr
+         INNER JOIN kunde k on b.KundenNr = k.KundenNr
+WHERE k.KundenNr = 2
+GROUP BY b.BestellNr AND r.Rezeptname;
+
+
+-- 13.Auswahl aller Zutaten, die bisher keinem Rezept zugeordnet sind
+SELECT z.ZutatsNr, z.Bezeichnung
+FROM zutat z
+         LEFT JOIN rezeptzutat rz on z.ZutatsNr = rz.ZutatsNr
+WHERE RezeptNr IS NULL;
+
+-- 14.Auswahl aller Rezepte, die eine bestimmte Kalorienmenge nicht überschreiten
+SELECT r.RezeptNr, r.Rezeptname, ROUND(SUM(z.Kalorien * rz.ZutatGewicht) / 100, 2) AS Kalorie
+FROM zutat z
+         INNER JOIN rezeptzutat rz on z.ZutatsNr = rz.ZutatsNr
+         INNER JOIN rezept r on rz.RezeptNr = r.RezeptNr
+GROUP BY r.RezeptNr
+HAVING SUM(z.Kalorien * rz.ZutatGewicht) / 100 < ???
+;
+
+-- 15.Auswahl aller Rezepte, die weniger als fünf Zutaten enthalten
+SELECT r.RezeptNr, r.Rezeptname
+FROM rezept r
+         INNER JOIN rezeptzutat rz on r.RezeptNr = rz.RezeptNr
+GROUP BY r.RezeptNr, r.Rezeptname
+HAVING COUNT(DISTINCT rz.ZutatsNr) < 3
+;
+
+-- 16.Auswahl aller Rezepte, die weniger als fünf Zutaten enthalten und eine bestimmte Ernährungskategorie erfüllen
+SELECT rz.RezeptNr, Rezeptname, z.ZutatsNr, z.Bezeichnung
+FROM zutat z
+INNER JOIN rezeptzutat rz on z.ZutatsNr = rz.ZutatsNr
+INNER JOIN rezept r on rz.RezeptNr = r.RezeptNr
+WHERE rz.RezeptNr IN (SELECT r.RezeptNr
+                   FROM rezept r
+                   INNER JOIN rezeptzutat rz on r.RezeptNr = rz.RezeptNr
+                   INNER JOIN zutat z on rz.ZutatsNr = z.ZutatsNr
+                   INNER JOIN ernaehrungskategorie e on z.ZutatsNr = e.ZutatsNr
+                   WHERE Kategoriebezeichnung = 'kategorie1')
+GROUP BY r.RezeptNr
+HAVING COUNT(z.ZutatsNr) < 7;
+
+
+-- 1 Alle Kunden, die keine Bestellung haben.
+SELECT KundenNr, Nachname
+FROM kunde
+WHERE KundenNr NOT IN (SELECT DISTINCT KundenNr FROM bestellung)
+;
+
+-- 2
+SELECT  *
+FROM kunde
+WHERE AdressID = (SELECT AdressID
+                  FROM adresse
+                  WHERE AdressID = 1);
+
+-- 3 Verkaufspreis eines bestimmten Rezeptes
+
+SELECT SUM(Verlaufspreis) AS Preis
+FROM rezeptzutat rz
+         INNER JOIN rezept r on rz.RezeptNr = r.RezeptNr
+         INNER JOIN bestellungrezept br on r.RezeptNr = br.RezeptNr
+         INNER JOIN bestellung b on br.BestellNr = b.BestellNr
+         INNER JOIN kunde k on b.KundenNr = k.KundenNr
+WHERE rz.RezeptNr = ???
+GROUP BY r.RezeptNr
+;
+
