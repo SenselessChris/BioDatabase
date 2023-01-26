@@ -1,5 +1,6 @@
 -- stand 25.01.2023
--- Alle Rezepte, die eine bestimmte Beschraenkung nicht enthalten (das gleiche Ergebnis mit der 6.Anforderung)
+
+-- Alle Rezepte, die eine bestimmte Beschraenkung nicht enthalten (das gleiche Ergebnis bei der 6.Anforderung)
 SELECT DISTINCT r.rezeptNr, r.Rezeptname, b.Beschraenkungsbezeichnung
 FROM rezept r
          INNER JOIN rezeptzutat rz on r.RezeptNr = rz.RezeptNr
@@ -17,13 +18,13 @@ WHERE r.RezeptNr NOT IN (SELECT r.rezeptNr
 -- Alle Rezepte, die eine bestimme Zutat nicht enthalten.
 SELECT r.RezeptNr, r.Rezeptname, rz.ZutatsNr
 FROM rezept r
-         LEFT JOIN rezeptzutat rz on r.RezeptNr = rz.RezeptNr and rz.ZutatsNr = 1
+         LEFT JOIN rezeptzutat rz on r.RezeptNr = rz.RezeptNr AND rz.ZutatsNr = 1
 WHERE rz.ZutatsNr IS NULL
 GROUP BY r.RezeptNr
 ;
 
 
-
+-- Alle Zutaten, die eine bestimmte Beschränkung erhalten.
 SELECT z.ZutatsNr, b.Beschraenkungsbezeichnung
 FROM zutat z
 LEFT JOIN beschraenkung b on z.ZutatsNr = b.ZutatsNr AND b.Beschraenkungsbezeichnung = 'beschraenkung1'
@@ -44,7 +45,6 @@ INSERT INTO ernaehrungskategorie VALUES ('kategorie10', 2);
 
 -- 3.Speicherung von Beschränkungen/ Allergenen
 INSERT INTO beschraenkung VALUES ('beschraenkung10', 3);
-
 
 -- 4.Zusammenstellung von Zutaten entsprechend eines Rezepts
 SELECT z.ZutatsNr, z.Bezeichnung
@@ -197,7 +197,7 @@ GROUP BY r.RezeptNr, r.Rezeptname
 HAVING COUNT(DISTINCT rz.ZutatsNr) < 3
 ;
 
--- 16.Auswahl aller Rezepte, die weniger als fünf Zutaten enthalten und eine bestimmte Ernährungskategorie erfüllen
+-- 16.Auswahl aller Rezepte, die weniger als fünf Zutaten enthalten und eine bestimmte Ernährungskategorie erfüllen.
 SELECT rz.RezeptNr, Rezeptname, z.ZutatsNr, z.Bezeichnung
 FROM zutat z
 INNER JOIN rezeptzutat rz on z.ZutatsNr = rz.ZutatsNr
@@ -209,7 +209,7 @@ WHERE rz.RezeptNr IN (SELECT r.RezeptNr
                    INNER JOIN ernaehrungskategorie e on z.ZutatsNr = e.ZutatsNr
                    WHERE Kategoriebezeichnung = 'kategorie1')
 GROUP BY r.RezeptNr
-HAVING COUNT(z.ZutatsNr) < 7;
+HAVING COUNT(z.ZutatsNr) < 5;
 
 
 -- 1 Alle Kunden, die keine Bestellung haben.
